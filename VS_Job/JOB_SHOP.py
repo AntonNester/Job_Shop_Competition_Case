@@ -271,7 +271,6 @@ class job_shop_model():
         # 4.	Заказ может состоять из нескольких конечных продуктов. Частичное выполнение заказа к отчетной дате 
         #       добавляет 0 ед. к выручке;
         task_obj =  collections.defaultdict(list)
-        task_obj_not =  collections.defaultdict(list)
         obj_value =  collections.defaultdict(int)
         max_obj = 0
         for item in self.orders:
@@ -283,7 +282,6 @@ class job_shop_model():
             PRICE = item[3]
             FIN_SUBORDER_ID = item[4]
             task_obj[ORDER_ID].append(task_present[ORDER_ID, FIN_SUBORDER_ID][0])
-            task_obj_not[ORDER_ID].append(task_present[ORDER_ID, FIN_SUBORDER_ID][0].Not())
             obj_value[ORDER_ID] += PRICE
             max_obj += PRICE
 
@@ -297,8 +295,7 @@ class job_shop_model():
             task_complete[ORDER_ID].append(objective_var)
             task_exist[ORDER_ID].append(objective_var_present)
 
-            self.model.Add(task_exist[ORDER_ID][0] == 1).OnlyEnforceIf(task_obj[ORDER_ID])
-            self.model.Add(task_exist[ORDER_ID][0] == 0).OnlyEnforceIf(task_obj_not[ORDER_ID])
+            self.model.Add(sum(task_obj[ORDER_ID]) == len(task_obj[ORDER_ID])*task_exist[ORDER_ID][0])
             self.model.Add(task_complete[ORDER_ID][0] == obj_value[ORDER_ID]*task_exist[ORDER_ID][0])
 
 
